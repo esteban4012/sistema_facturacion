@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Factura</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Factura</h1>
+        <form id="factura-form" method="post">
+            {% csrf_token %}
+            <div class="form-group row">
+                <label for="id_fecha" class="col-sm-2 col-form-label">Fecha:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="id_fecha" name="fecha" value="{{ factura.fecha|date:"Y-m-d H:i:s" }}" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Nombre Cliente:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="nombre_cliente" value="{{ factura.nombre_cliente }}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Dirección:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="direccion" value="{{ factura.direccion }}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Cédula:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="cedula" value="{{ factura.cedula }}">
+                </div>
+            </div>
+            <h2>Artículos</h2>
+            {{ formset.management_form }}
+            <div id="articulos-container">
+                {% for form in formset %}
+                    <div class="articulo-form mb-3 p-3 border rounded">
+                        {{ form.as_p }}
+                        <input type="hidden" name="{{ form.prefix }}-DELETE" id="id_{{ form.prefix }}-DELETE">
+                        <button type="button" class="btn btn-danger remove-article">Eliminar</button>
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="add-article" class="btn btn-secondary mt-3">Agregar Artículo</button>
+            <div class="form-group row mt-3">
+                <label class="col-sm-2 col-form-label">Valor Total:</label>
+                <div class="col-sm-10">
+                    <input type="number" step="any" readonly class="form-control" id="id_valor_total" name="valor_total" value="{{ factura.valor_total }}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Pagado:</label>
+                <div class="col-sm-10">
+                    <input type="checkbox" class="form-check-input" id="id_pagado" name="pagado" {% if factura.pagado %}checked{% endif %}>
+                    <label class="form-check-label" for="id_pagado">Marcar como pagado</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a href="{% url 'lista_facturas' %}" class="btn btn-secondary">Lista de Facturas</a>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var articuloIndex = {{ formset.total_form_count }};
+
+            $('#add-article').click(function() {
+                var newForm = $('.articulo-form').first().clone(false);
+                newForm.find(':input').each(function() {
+                    var name = $(this).attr('name').replace(/-\d+-/, '-' + articuloIndex + '-');
+                    var id = 'id_' + name;
+                    $(this).attr({ 'name': name, 'id': id }).val('');
+                });
+                newForm.find('.remove-article').click(function() {
+                    $(this).closest('.articulo-form').find('input[name$="-DELETE"]').val('on');
+                    $(this).closest('.articulo-form').hide();
+                    recalculateTotal();
+                    updateManagementForm();
+                });
+                articuloIndex++;
+                $('#articulos-container').append(newForm);
+                bindChangeEvents(newForm);
+                updateManagementForm();
+            });
+
+            $(document).on('click', '.remove-article', function() {
+                $(this).closest('.articulo-form').find('input[name$="-DELETE"]').val('on');
+                $(this).closest('.articulo-form').hide();
+                recalculateTotal();
+                updateManagementForm();
+            });
+
+            function bindChangeEvents(context) {
+                context.find('[name$="-cantidad"], [name$="-valor"]').on('input', function() {
+                    var cantidad = parseFloat($(this).closest('.articulo-form').find('[name$="-cantidad"]').val());
+                    var valorUnitario = parseFloat($(this).closest('.articulo-form').find('[name$="-valor"]').val());
+                    var valorTotal = cantidad * valorUnitario || 0;
+                    $(this).closest('.articulo-form').find('[name$="-valor_total"]').val(valorTotal.toFixed(2));
+                    recalculateTotal();
+                });
+            }
+
+            function recalculateTotal() {
+                var totalGeneral = 0;
+                $('[name$="-valor_total"]').each(function() {
+                    totalGeneral += parseFloat($(this).val()) || 0;
+                });
+                $('#id_valor_total').val(totalGeneral.toFixed(2));
+            }
+
+            function updateManagementForm() {
+                var totalForms = $('.articulo-form').length;
+                $('#id_articulo_set-TOTAL_FORMS').val(totalForms);
+            }
+
+            // Bind change events for existing forms on page load
+            $('.articulo-form').each(function() {
+                bindChangeEvents($(this));
+            });
+
+            // Trigger change event for existing forms to calculate initial total
+            $('[name$="-cantidad"], [name$="-valor"]').trigger('input');
+
+            updateManagementForm();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

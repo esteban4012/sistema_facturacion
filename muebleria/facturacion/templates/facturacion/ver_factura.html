@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detalles de la Factura</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Detalles de la Factura</h1>
+        <table class="table table-bordered">
+            <tr>
+                <th>ID</th>
+                <td>{{ factura.id }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ factura.fecha }}</td>
+            </tr>
+            <tr>
+                <th>Nombre del Cliente</th>
+                <td>{{ factura.nombre_cliente }}</td>
+            </tr>
+            <tr>
+                <th>Cédula</th>
+                <td>{{ factura.cedula }}</td>
+            </tr>
+            <tr>
+                <th>Dirección</th>
+                <td>{{ factura.direccion }}</td>
+            </tr>
+            <tr>
+                <th>Valor Total</th>
+                <td>{{ factura.valor_total }}</td>
+            </tr>
+            <tr>
+                <th>Pagado</th>
+                <td>{{ factura.pagado }}</td>
+            </tr>
+        </table>
+        
+        <h2>Artículos</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>Valor Unitario</th>
+                    <th>Valor Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for articulo in articulos %}
+                    <tr>
+                        <td>{{ articulo.id }}</td>
+                        <td>{{ articulo.descripcion }}</td>
+                        <td>{{ articulo.cantidad }}</td>
+                        <td>{{ articulo.valor }}</td>
+                        <td>{{ articulo.valor_total }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'lista_facturas' %}" class="btn btn-secondary">Volver a la Lista</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
